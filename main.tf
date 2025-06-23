@@ -12,7 +12,7 @@ resource "aws_key_pair" "nginx_key" {
 resource "aws_vpc" "main" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_hostnames = true
-  tags = { Name = "main-vpc" }
+  tags                 = { Name = "main-vpc" }
 }
 
 # Subnets
@@ -21,14 +21,14 @@ resource "aws_subnet" "public" {
   cidr_block              = "10.0.1.0/24"
   availability_zone       = "us-east-1a"
   map_public_ip_on_launch = true
-  tags = { Name = "public-subnet" }
+  tags                    = { Name = "public-subnet" }
 }
 
 resource "aws_subnet" "private" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.2.0/24"
   availability_zone = "us-east-1a"
-  tags = { Name = "private-subnet" }
+  tags              = { Name = "private-subnet" }
 }
 
 # Internet Gateway
@@ -101,9 +101,9 @@ resource "aws_iam_role" "ssm_role" {
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
     Statement = [{
-      Effect = "Allow",
+      Effect    = "Allow",
       Principal = { Service = "ec2.amazonaws.com" },
-      Action = "sts:AssumeRole"
+      Action    = "sts:AssumeRole"
     }]
   })
 }
