@@ -4,7 +4,7 @@ This project sets up a secure AWS infrastructure using Terraform to deploy a Doc
 
 ---
 
-## 🏗️Infrastructure Overview
+## 🏗️nfrastructure Overview
 
 -  VPC with Public + Private Subnets
 -  NAT Gateway for outbound internet from private subnet
