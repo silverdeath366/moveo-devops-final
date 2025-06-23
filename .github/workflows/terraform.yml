@@ -22,11 +22,8 @@ jobs:
 
       - name: Generate terraform.tfvars
         run: |
-          cat <<EOF > terraform.tfvars
-region          = "us-east-1"
-public_key_path = "keys/nginx_key.pub"
-EOF
-
+          echo 'region          = "us-east-1"' > terraform.tfvars
+          echo 'public_key_path = "keys/nginx_key.pub"' >> terraform.tfvars
       - name: Terraform Init
         run: terraform init
         env:
