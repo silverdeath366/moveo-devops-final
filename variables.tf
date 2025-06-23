@@ -1,10 +1,9 @@
 variable "region" {
-  description = "AWS Region"
+  description = "AWS region"
   type        = string
-  default     = "us-east-1"
 }
 
 variable "public_key_path" {
-  description = "Path to your public SSH key"
+  description = "Path to the SSH public key"
   type        = string
 }
