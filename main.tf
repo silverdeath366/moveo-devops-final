@@ -1,7 +1,5 @@
 provider "aws" {
-  region     = var.region
-  access_key = var.aws_access_key
-  secret_key = var.aws_secret_key
+  region = var.region
 }
 
 # Key Pair
@@ -14,7 +12,7 @@ resource "aws_key_pair" "nginx_key" {
 resource "aws_vpc" "main" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_hostnames = true
-  tags                 = { Name = "main-vpc" }
+  tags = { Name = "main-vpc" }
 }
 
 # Subnets
@@ -23,14 +21,14 @@ resource "aws_subnet" "public" {
   cidr_block              = "10.0.1.0/24"
   availability_zone       = "us-east-1a"
   map_public_ip_on_launch = true
-  tags                    = { Name = "public-subnet" }
+  tags = { Name = "public-subnet" }
 }
 
 resource "aws_subnet" "private" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.2.0/24"
   availability_zone = "us-east-1a"
-  tags              = { Name = "private-subnet" }
+  tags = { Name = "private-subnet" }
 }
 
 # Internet Gateway
@@ -39,16 +37,17 @@ resource "aws_internet_gateway" "igw" {
   tags   = { Name = "main-igw" }
 }
 
-# NAT Gateway
+# Elastic IP for NAT Gateway
 resource "aws_eip" "nat_eip" {}
 
+# NAT Gateway
 resource "aws_nat_gateway" "nat" {
   allocation_id = aws_eip.nat_eip.id
   subnet_id     = aws_subnet.public.id
   tags          = { Name = "nat-gateway" }
 }
 
-# Route Table - Public
+# Route Tables
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
 
@@ -65,7 +64,6 @@ resource "aws_route_table_association" "public_assoc" {
   route_table_id = aws_route_table.public.id
 }
 
-# Route Table - Private
 resource "aws_route_table" "private" {
   vpc_id = aws_vpc.main.id
 
@@ -103,9 +101,9 @@ resource "aws_iam_role" "ssm_role" {
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
     Statement = [{
-      Effect    = "Allow",
+      Effect = "Allow",
       Principal = { Service = "ec2.amazonaws.com" },
-      Action    = "sts:AssumeRole"
+      Action = "sts:AssumeRole"
     }]
   })
 }
@@ -122,14 +120,23 @@ resource "aws_iam_instance_profile" "ssm_profile" {
 
 # EC2 Instance
 resource "aws_instance" "nginx" {
-  ami                         = "ami-020cba7c55df1f615" # Ubuntu 22.04
+  ami                         = "ami-020cba7c55df1f615" # Ubuntu 22.04 LTS
   instance_type               = "t2.micro"
   subnet_id                   = aws_subnet.private.id
   vpc_security_group_ids      = [aws_security_group.nginx_sg.id]
   key_name                    = aws_key_pair.nginx_key.key_name
   iam_instance_profile        = aws_iam_instance_profile.ssm_profile.name
   associate_public_ip_address = false
-  user_data                   = file("${path.module}/user_data.sh")
+
+  user_data = <<-EOF
+              #!/bin/bash
+              apt-get update -y
+              apt-get install -y docker.io
+              systemctl start docker
+              systemctl enable docker
+              docker pull silverdeath366/my-nginx
+              docker run -d -p 80:80 silverdeath366/my-nginx
+            EOF
 
   tags = {
     Name = "nginx-private"
