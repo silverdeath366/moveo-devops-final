@@ -20,10 +20,10 @@ jobs:
         with:
           terraform_version: 1.6.6
 
-      - name: Create terraform.tfvars
+      - name: Create terraform.tfvars and key file
         run: |
           mkdir -p keys
-          echo 'region = "us-east-1"' > terraform.tfvars
+          echo 'region          = "us-east-1"' > terraform.tfvars
           echo 'public_key_path = "keys/nginx_key.pub"' >> terraform.tfvars
           echo "${{ secrets.NGINX_PUBLIC_KEY }}" > keys/nginx_key.pub
 
