@@ -20,19 +20,28 @@ jobs:
         with:
           terraform_version: 1.6.6
 
-      - name: Create terraform.tfvars and key file
+      - name: Create SSH key directory
+        run: mkdir -p keys
+
+      - name: Save public key from secret
+        run: echo "${{ secrets.NGINX_PUBLIC_KEY }}" > keys/nginx_key.pub
+
+      - name: Generate terraform.tfvars
         run: |
-          mkdir -p keys
-          echo 'region          = "us-east-1"' > terraform.tfvars
-          echo 'public_key_path = "keys/nginx_key.pub"' >> terraform.tfvars
-          echo "${{ secrets.NGINX_PUBLIC_KEY }}" > keys/nginx_key.pub
+          cat <<EOF > terraform.tfvars
+region          = "us-east-1"
+public_key_path = "keys/nginx_key.pub"
+EOF
 
       - name: Terraform Init
         run: terraform init
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_REGION: "us-east-1"
+
+      - name: Terraform Format Check
+        run: terraform fmt -check -diff -recursive
 
       - name: Terraform Validate
         run: terraform validate
@@ -42,7 +51,7 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_REGION: "us-east-1"
 
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main'
@@ -50,4 +59,4 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_REGION: "us-east-1"
